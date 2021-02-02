@@ -17,7 +17,6 @@ import Bio.Seq
 import Bio.SeqFeature
 import Bio.SeqRecord
 from Bio import SeqIO
-from Bio.Alphabet import IUPAC
 from PyQt5.QtCore import QSettings
 from phagecommander.Utilities import RastPy, MetagenePy, Aragorn
 
@@ -580,7 +579,7 @@ class GeneUtils:
         :param fileName: name of the file to write to
         """
         # create sequence from sequence string
-        seq = Bio.Seq.Seq(sequence, IUPAC.unambiguous_dna)
+        seq = Bio.Seq.Seq(sequence)
 
         # sort genes from smallest to largest starts
         genes = GeneUtils.sortGenes(genes)

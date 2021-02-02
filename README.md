@@ -1,5 +1,7 @@
 # Phage Commander 
-A graphical utility for querying various gene prediction tools for FASTA formatted DNA sequences.
+Phage Commander is a graphical utility for querying various gene prediction tools for FASTA formatted DNA sequences.
+
+
 ## Overview
 Phage Commander provides utilities to query various gene-encoding prediction tools and results in various formats.
 
@@ -18,31 +20,34 @@ Supported exporting formats:
 * Genbank
 * Excel
 
+
 ## Getting Started
 ### Prerequisites
 * Python 3.6+
-### Installing
-Install via pip
-```angular2
-pip install phage-commander
-```
-Install via pip and git
-```angular2html
-pip install git+https://github.com/mlazeroff/PhageCommander
-```
 
-### Running
-```shell script
-# on Windows
-phagecom.exe
-```
-```shell script
-# on MacOS/Linux
-phagecom
-```
-**Note:** The pip "Scripts" directory should be included in your PATH variable.
+
+## How to use Phage Commander
+1. Open Phage Commander.
+   a. On Windows, open a command window (cmd.exe). Navigate to the folder where you
+   have downloaded Phage Commander. Navigate to the phagecommander/bin directory.
+   Type phagecom-windows.exe in the command window. 
+   
+   b. On Linux, open a shell. Navigate to the folder where you have downloaded Phage
+   Commander. Type py phagecom.py in the shell.
+   **Note:** The pip "Scripts" directory should be included in your PATH variable.
+   
+2. See the included PDF (Auto-annotation with Phage Commander.pdf) for how to enter 
+   information into the query window.
+   
+
+## Manuscript about Phage Commander
+Also see the following draft manuscript describing Phage Commander in detail:
+https://www.biorxiv.org/content/10.1101/2020.11.11.378802v1
+
 
 ## Author
 * **Matthew Lazeroff**
+
+
 ## License
 This project is licensed under the GNU GPLv3
