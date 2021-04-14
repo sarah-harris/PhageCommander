@@ -47,7 +47,7 @@ https://www.biorxiv.org/content/10.1101/2020.11.11.378802v1
 
 
 ## Author
-* **Matthew Lazeroff**
+* **Matthew Lazeroff**Geordie Ryder**Philippos Tsourkas**Sarah Harris
 
 
 ## License
