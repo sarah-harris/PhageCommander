@@ -36,8 +36,7 @@ Supported exporting formats:
    Commander. Type py phagecom.py in the shell.
    **Note:** The pip "Scripts" directory should be included in your PATH variable.
    
-2. See the included PDF (Auto-annotation with Phage Commander.pdf) for how to enter 
-   information into the query window.
+2. See the included PDF (Phage Commander User Guide.pdf) for how to use Phage Commander.
    
 
 ## Manuscript about Phage Commander
@@ -47,6 +46,9 @@ https://www.biorxiv.org/content/10.1101/2020.11.11.378802v1
 
 ## Author
 * **Matthew Lazeroff**
+* **Geordie Ryder**
+* **Philippos Tsourkas**
+* **Sarah Harris**
 
 
 ## License
