@@ -1,9 +1,9 @@
 # Phage Commander 
-Phage Commander is a software tool for identifying genes in phage genomes.
+Phage Commander is a graphical utility for querying various gene prediction tools for FASTA formatted DNA sequences.
 
 
 ## Overview
-Phage Commander runs a phage’s DNA sequence through multiple gene identification tools and outputs a list of potential genes. These tools include:
+Phage Commander provides utilities to query various gene-encoding prediction tools and results in various formats.
 
 The following gene-encoding prediction tools are currently supported:
 * Glimmer
@@ -15,7 +15,6 @@ The following gene-encoding prediction tools are currently supported:
 * Prodigal
 * RAST
 * Metagene
-* Aragorn (for tRNA genes)
 
 Supported exporting formats:
 * Genbank
@@ -37,7 +36,7 @@ Supported exporting formats:
    Commander. Type py phagecom.py in the shell.
    **Note:** The pip "Scripts" directory should be included in your PATH variable.
    
-2. See the included PDF (Phage Commander User Guide.pdf) for how to enter 
+2. See the included PDF (Auto-annotation with Phage Commander.pdf) for how to enter 
    information into the query window.
    
 
@@ -46,11 +45,8 @@ Also see the following draft manuscript describing Phage Commander in detail:
 https://www.biorxiv.org/content/10.1101/2020.11.11.378802v1
 
 
-## Authors
-* Matthew Lazeroff
-* Geordie Ryder
-* Philippos Tsourkas
-* Sarah Harris
+## Author
+* **Matthew Lazeroff**
 
 
 ## License

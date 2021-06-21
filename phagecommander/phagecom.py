@@ -12,6 +12,7 @@ from phagecommander import Gene
 import phagecommander.GuiWidgets
 from phagecommander.Utilities import ThreadData, ProdigalRelease, Aragorn
 from phagecommander.Utilities.Tools import *
+import platform # (GRyde) Needed to disable Glimmer box for Windows
 
 APP_NAME = 'Phage Commander'
 
@@ -74,12 +75,42 @@ class QueryData:
 class ColorTable(QWidget):
     CELL_COLOR_SETTING = 'TABLE/cell_color/'
     MAJORITY_TEXT_SETTING = 'TABLE/majority_text_color/'
-    MINORITY_TEXT_SETTING = 'TABLE/minority_text_color/'
-    _TABLE_COLUMN_HEADERS = ['Cell Color', 'Majority Text', 'Minority Text']
+    # (GRyde) ************************************************************************** start
+    MAJORITY_TEXT_SECOND_SETTING = 'TABLE/majority_text_second_color/'
+    MAJORITY_TEXT_THIRD_SETTING = 'TABLE/majority_text_third_color/'
+    MAJORITY_TEXT_FOURTH_SETTING = 'TABLE/majority_text_fourth_color/'
+    MAJORITY_TEXT_FIFTH_SETTING = 'TABLE/majority_text_fifth_color/'
+    MAJORITY_TEXT_SIXTH_SETTING = 'TABLE/majority_text_sixth_color/'
+    MAJORITY_TEXT_SEVENTH_SETTING = 'TABLE/majority_text_seventh_color/'
+    MAJORITY_TEXT_EIGHTH_SETTING = 'TABLE/majority_text_eighth_color/'
+    # (GRyde) ************************************************************************** end
+    MINORITY_TEXT_SETTING = 'TABLE/minority_text_color/' # Need to change minority references to Ninth color
+    _TABLE_COLUMN_HEADERS = [
+        'Cell Color',
+        'Majority Text',
+        '2nd Text Color',
+        '3rd Text Color',
+        '4th Text Color',
+        '5th Text Color',
+        '6th Text Color',
+        '7th Text Color',
+        '8th Text Color',
+        '9th Text Color'
+    ]
+    # Original code _TABLE_COLUMN_HEADERS = ['Cell Color', 'Majority Text', 'Minority Text']
     _TABLE_MAJORITY_MINORITY_DEFAULT_TEXT = '4099'
     _CELL_COLOR_COLUMN = 0
     _MAJORITY_TEXT_COLUMN = 1
-    _MINORITY_TEXT_COLUMN = 2
+    # (GRyde) ************************************************************************** start
+    _SECOND_COLOR_TEXT_COLUMN = 2
+    _THIRD_COLOR_TEXT_COLUMN = 3
+    _FOURTH_COLOR_TEXT_COLUMN = 4
+    _FIFTH_COLOR_TEXT_COLUMN = 5
+    _SIXTH_COLOR_TEXT_COLUMN = 6
+    _SEVENTH_COLOR_TEXT_COLUMN = 7
+    _EIGHTH_COLOR_TEXT_COLUMN = 8
+    # (GRyde) ************************************************************************** end
+    _MINORITY_TEXT_COLUMN = 9 # Originally listed as column 2 before adding additional colors
     _DEFAULT_CELL_COLORS = [
         (255, 255, 255),
         (218, 238, 243),
@@ -102,16 +133,97 @@ class ColorTable(QWidget):
         (255, 255, 255),
         (255, 255, 255)
     ]
+    # (GRyde) ************************************************************************** start
+    # Since the nth color cannot appear unless called by at least n programs, all default colors set to black/white until
+    # row n for nth Text Color
+    _DEFAULT_MAJORITY_SECOND_COLORS = [
+        (0, 0, 0),
+        (255, 85, 0),
+        (255, 85, 0),
+        (255, 85, 0),
+        (255, 170, 0),
+        (255, 170, 0),
+        (255, 170, 0),
+        (255, 170, 0),
+        (255, 170, 0)
+    ]
+    _DEFAULT_MAJORITY_THIRD_COLORS = [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 120, 0),
+        (0, 120, 0),
+        (170, 255, 170),
+        (170, 255, 170),
+        (170, 255, 170),
+        (170, 255, 170),
+        (170, 255, 170)
+    ]
+    _DEFAULT_MAJORITY_FOURTH_COLORS = [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (255, 0, 255),
+        (255, 170, 255),
+        (255, 170, 255),
+        (255, 170, 255),
+        (255, 170, 255),
+        (255, 170, 255)
+    ]
+    _DEFAULT_MAJORITY_FIFTH_COLORS = [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (255, 255, 0),
+        (255, 255, 0),
+        (255, 255, 0),
+        (255, 255, 0),
+        (255, 255, 0)
+    ]
+    _DEFAULT_MAJORITY_SIXTH_COLORS = [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (255, 255, 255),
+        (0, 255, 255),
+        (0, 255, 255),
+        (0, 255, 255),
+        (0, 255, 255)
+    ]
+    _DEFAULT_MAJORITY_SEVENTH_COLORS = [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (255, 255, 255),
+        (255, 255, 255),
+        (170, 170, 255),
+        (170, 170, 255),
+        (170, 170, 255)
+    ]
+    _DEFAULT_MAJORITY_EIGHTH_COLORS = [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (255, 255, 255),
+        (255, 255, 255),
+        (255, 255, 255),
+        (255, 85, 127),
+        (255, 85, 127)
+    ]
+    # (GRyde) ************************************************************************** end
     _DEFAULT_MINORITY_COLORS = [
-        (255, 75, 75),
-        (255, 75, 75),
-        (255, 75, 75),
-        (255, 75, 75),
-        (255, 75, 75),
-        (255, 75, 75),
-        (255, 75, 75),
-        (255, 75, 75),
-        (255, 75, 75),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (255, 255, 255),
+        (255, 255, 255),
+        (255, 255, 255),
+        (255, 255, 255),
+        (170, 170, 0)
     ]
 
     def __init__(self, settings, parent=None):
@@ -136,8 +248,8 @@ class ColorTable(QWidget):
         self.tableWidget.verticalScrollBar().setDisabled(True)
         columnWidth = self.tableWidget.columnWidth(0)
         vertHeaderWidth = self.tableWidget.verticalHeader().width()
-        self.tableWidget.setMinimumWidth(vertHeaderWidth + (3 * columnWidth))
-        self.tableWidget.setMaximumWidth(vertHeaderWidth + (3 * columnWidth))
+        self.tableWidget.setMinimumWidth(vertHeaderWidth + (10 * columnWidth)) # Originally (3 * columnWidth))
+        self.tableWidget.setMaximumWidth(vertHeaderWidth + (10 * columnWidth)) # Originally (3 * columnWidth))
 
         # insert items into table
         tableHeight = self.tableWidget.horizontalHeader().height()
@@ -146,6 +258,15 @@ class ColorTable(QWidget):
             tableHeight += self.tableWidget.rowHeight(i)
             item = QTableWidgetItem()
             majorityItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            # (GRyde) ****************************************************************** start
+            secondTextItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            thirdTextItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            fourthTextItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            fifthTextItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            sixthTextItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            seventhTextItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            eighthTextItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
+            # (GRyde) ****************************************************************** end
             minorityItem = QTableWidgetItem(self._TABLE_MAJORITY_MINORITY_DEFAULT_TEXT)
 
             # set default cell color if no setting is found
@@ -159,6 +280,15 @@ class ColorTable(QWidget):
                 self.settings.setValue(self.CELL_COLOR_SETTING + str(i), ' '.join(colorStr))
             item.setBackground(color)
             majorityItem.setBackground(color)
+            # (GRyde) ****************************************************************** start
+            secondTextItem.setBackground(color)
+            thirdTextItem.setBackground(color)
+            fourthTextItem.setBackground(color)
+            fifthTextItem.setBackground(color)
+            sixthTextItem.setBackground(color)
+            seventhTextItem.setBackground(color)
+            eighthTextItem.setBackground(color)
+            # (GRyde) ****************************************************************** end
             minorityItem.setBackground(color)
 
             # set default majority color if no setting is found
@@ -172,7 +302,94 @@ class ColorTable(QWidget):
                 majorityItem.setForeground(defaultColor)
                 defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
                 self.settings.setValue(self.MAJORITY_TEXT_SETTING + str(i), defaultColorStr)
-
+                
+            # (GRyde) ****************************************************************** start
+            # set default second text color if no setting is found
+            secondTextColorSetting = self.settings.value(self.MAJORITY_TEXT_SECOND_SETTING + str(i))
+            if secondTextColorSetting is not None:
+                colors = [int(num) for num in secondTextColorSetting.split(' ')]
+                color = QColor(*colors)
+                secondTextItem.setForeground(color)
+            else:
+                defaultColor = QColor(*self._DEFAULT_MAJORITY_SECOND_COLORS[i])
+                secondTextItem.setForeground(defaultColor)
+                defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_SECOND_SETTING + str(i), defaultColorStr)
+                
+            # set default third text color if no setting is found
+            thirdTextColorSetting = self.settings.value(self.MAJORITY_TEXT_THIRD_SETTING + str(i))
+            if thirdTextColorSetting is not None:
+                colors = [int(num) for num in thirdTextColorSetting.split(' ')]
+                color = QColor(*colors)
+                thirdTextItem.setForeground(color)
+            else:
+                defaultColor = QColor(*self._DEFAULT_MAJORITY_THIRD_COLORS[i])
+                thirdTextItem.setForeground(defaultColor)
+                defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_THIRD_SETTING + str(i), defaultColorStr)
+                
+            # set default fourth text color if no setting is found
+            fourthTextColorSetting = self.settings.value(self.MAJORITY_TEXT_FOURTH_SETTING + str(i))
+            if fourthTextColorSetting is not None:
+                colors = [int(num) for num in fourthTextColorSetting.split(' ')]
+                color = QColor(*colors)
+                fourthTextItem.setForeground(color)
+            else:
+                defaultColor = QColor(*self._DEFAULT_MAJORITY_FOURTH_COLORS[i])
+                fourthTextItem.setForeground(defaultColor)
+                defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_FOURTH_SETTING + str(i), defaultColorStr)
+                
+            # set default fifth text color if no setting is found
+            fifthTextColorSetting = self.settings.value(self.MAJORITY_TEXT_FIFTH_SETTING + str(i))
+            if fifthTextColorSetting is not None:
+                colors = [int(num) for num in fifthTextColorSetting.split(' ')]
+                color = QColor(*colors)
+                fifthTextItem.setForeground(color)
+            else:
+                defaultColor = QColor(*self._DEFAULT_MAJORITY_FIFTH_COLORS[i])
+                fifthTextItem.setForeground(defaultColor)
+                defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_FIFTH_SETTING + str(i), defaultColorStr)
+                
+            # set default sixth text color if no setting is found
+            sixthTextColorSetting = self.settings.value(self.MAJORITY_TEXT_SIXTH_SETTING + str(i))
+            if sixthTextColorSetting is not None:
+                colors = [int(num) for num in sixthTextColorSetting.split(' ')]
+                color = QColor(*colors)
+                sixthTextItem.setForeground(color)
+            else:
+                defaultColor = QColor(*self._DEFAULT_MAJORITY_SIXTH_COLORS[i])
+                sixthTextItem.setForeground(defaultColor)
+                defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_SIXTH_SETTING + str(i), defaultColorStr)
+                
+            # set default seventh text color if no setting is found
+            seventhTextColorSetting = self.settings.value(self.MAJORITY_TEXT_SEVENTH_SETTING + str(i))
+            if seventhTextColorSetting is not None:
+                colors = [int(num) for num in seventhTextColorSetting.split(' ')]
+                color = QColor(*colors)
+                seventhTextItem.setForeground(color)
+            else:
+                defaultColor = QColor(*self._DEFAULT_MAJORITY_SEVENTH_COLORS[i])
+                seventhTextItem.setForeground(defaultColor)
+                defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_SEVENTH_SETTING + str(i), defaultColorStr)
+                
+            # set default eighth text color if no setting is found
+            eighthTextColorSetting = self.settings.value(self.MAJORITY_TEXT_EIGHTH_SETTING + str(i))
+            if eighthTextColorSetting is not None:
+                colors = [int(num) for num in eighthTextColorSetting.split(' ')]
+                color = QColor(*colors)
+                eighthTextItem.setForeground(color)
+            else:
+                defaultColor = QColor(*self._DEFAULT_MAJORITY_EIGHTH_COLORS[i])
+                eighthTextItem.setForeground(defaultColor)
+                defaultColorStr = ' '.join([str(x) for x in defaultColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_EIGHTH_SETTING + str(i), defaultColorStr)
+                
+            # (GRyde) ****************************************************************** end
+                
             # set default minority color if no setting is found
             minoritySetting = self.settings.value(self.MINORITY_TEXT_SETTING + str(i))
             if minoritySetting is not None:
@@ -188,8 +405,26 @@ class ColorTable(QWidget):
             # add items to table
             self.tableWidget.setItem(i, self._CELL_COLOR_COLUMN, item)
             self.tableWidget.setItem(i, self._MAJORITY_TEXT_COLUMN, majorityItem)
+            # (GRyde) ****************************************************************** start
+            self.tableWidget.setItem(i, self._SECOND_COLOR_TEXT_COLUMN, secondTextItem)
+            self.tableWidget.setItem(i, self._THIRD_COLOR_TEXT_COLUMN, thirdTextItem)
+            self.tableWidget.setItem(i, self._FOURTH_COLOR_TEXT_COLUMN, fourthTextItem)
+            self.tableWidget.setItem(i, self._FIFTH_COLOR_TEXT_COLUMN, fifthTextItem)
+            self.tableWidget.setItem(i, self._SIXTH_COLOR_TEXT_COLUMN, sixthTextItem)
+            self.tableWidget.setItem(i, self._SEVENTH_COLOR_TEXT_COLUMN, seventhTextItem)
+            self.tableWidget.setItem(i, self._EIGHTH_COLOR_TEXT_COLUMN, eighthTextItem)
+            # (GRyde) ****************************************************************** end
             self.tableWidget.setItem(i, self._MINORITY_TEXT_COLUMN, minorityItem)
             majorityItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            # (GRyde) ****************************************************************** start
+            secondTextItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            thirdTextItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            fourthTextItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            fifthTextItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            sixthTextItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            seventhTextItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            eighthTextItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            # (GRyde) ****************************************************************** end
             minorityItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         self.tableWidget.setMaximumHeight(tableHeight)
         self.tableWidget.setMinimumHeight(tableHeight)
@@ -214,6 +449,12 @@ class ColorTable(QWidget):
             self.changeCellColor(row, column)
         if column == self._MAJORITY_TEXT_COLUMN or column == self._MINORITY_TEXT_COLUMN:
             self.changeTextColor(row, column)
+        # (GRyde) ********************************************************************** start
+        if (column == self._SECOND_COLOR_TEXT_COLUMN or column == self._THIRD_COLOR_TEXT_COLUMN or column == self._FOURTH_COLOR_TEXT_COLUMN or
+            column == self._FIFTH_COLOR_TEXT_COLUMN or column == self._SIXTH_COLOR_TEXT_COLUMN or column == self._SEVENTH_COLOR_TEXT_COLUMN or
+            column == self._EIGHTH_COLOR_TEXT_COLUMN):
+            self.changeTextColor(row, column)
+        # (GRyde) ********************************************************************** end
 
     def changeTextColor(self, row, column):
         """
@@ -230,6 +471,22 @@ class ColorTable(QWidget):
             colorStr = ' '.join([str(x) for x in color.getRgb()[:3]])
             if column == self._MAJORITY_TEXT_COLUMN:
                 self.settings.setValue(self.MAJORITY_TEXT_SETTING + str(row), colorStr)
+            # (GRyde) ****************************************************************** start
+            if column == self._SECOND_COLOR_TEXT_COLUMN:
+                self.settings.setValue(self.MAJORITY_TEXT_SECOND_SETTING + str(row), colorStr)
+            if column == self._THIRD_COLOR_TEXT_COLUMN:
+                self.settings.setValue(self.MAJORITY_TEXT_THIRD_SETTING + str(row), colorStr)
+            if column == self._FOURTH_COLOR_TEXT_COLUMN:
+                self.settings.setValue(self.MAJORITY_TEXT_FOURTH_SETTING + str(row), colorStr)
+            if column == self._FIFTH_COLOR_TEXT_COLUMN:
+                self.settings.setValue(self.MAJORITY_TEXT_FIFTH_SETTING + str(row), colorStr)
+            if column == self._SIXTH_COLOR_TEXT_COLUMN:
+                self.settings.setValue(self.MAJORITY_TEXT_SIXTH_SETTING + str(row), colorStr)
+            if column == self._SEVENTH_COLOR_TEXT_COLUMN:
+                self.settings.setValue(self.MAJORITY_TEXT_SEVENTH_SETTING + str(row), colorStr)
+            if column == self._EIGHTH_COLOR_TEXT_COLUMN:
+                self.settings.setValue(self.MAJORITY_TEXT_EIGHTH_SETTING + str(row), colorStr)
+            # (GRyde) ****************************************************************** end
             if column == self._MINORITY_TEXT_COLUMN:
                 self.settings.setValue(self.MINORITY_TEXT_SETTING + str(row), colorStr)
 
@@ -241,13 +498,31 @@ class ColorTable(QWidget):
         """
         item = self.tableWidget.item(row, column)
         majorityItem = self.tableWidget.item(row, column + 1)
-        minorityItem = self.tableWidget.item(row, column + 2)
+        # (GRyde) ********************************************************************** start
+        secondTextItem = self.tableWidget.item(row, column + 2)
+        thirdTextItem = self.tableWidget.item(row, column + 3)
+        fourthTextItem = self.tableWidget.item(row, column + 4)
+        fifthTextItem = self.tableWidget.item(row, column + 5)
+        sixthTextItem = self.tableWidget.item(row, column + 6)
+        seventhTextItem = self.tableWidget.item(row, column + 7)
+        eighthTextItem = self.tableWidget.item(row, column + 8)
+        # (GRyde) ********************************************************************** end
+        minorityItem = self.tableWidget.item(row, column + 9) # Originally column + 2
         colorDialog = QColorDialog()
         currColor = item.background().color()
         color = colorDialog.getColor(currColor, self, 'Select Cell Color')
         if color.isValid():
             item.setBackground(color)
             majorityItem.setBackground(color)
+            # (GRyde) ****************************************************************** start
+            secondTextItem.setBackground(color)
+            thirdTextItem.setBackground(color)
+            fourthTextItem.setBackground(color)
+            fifthTextItem.setBackground(color)
+            sixthTextItem.setBackground(color)
+            seventhTextItem.setBackground(color)
+            eighthTextItem.setBackground(color)
+            # (GRyde) ****************************************************************** end
             minorityItem.setBackground(color)
             colorStr = ' '.join([str(x) for x in color.getRgb()[:3]])
             self.settings.setValue(self.CELL_COLOR_SETTING + str(row), colorStr)
@@ -270,6 +545,61 @@ class ColorTable(QWidget):
                 majorityItem.setForeground(majorityColor)
                 majorityColorStr = ' '.join([str(x) for x in majorityColor.getRgb()[:3]])
                 self.settings.setValue(self.MAJORITY_TEXT_SETTING + str(row), majorityColorStr)
+                
+                # (GRyde) ************************************************************** start
+                # Works for resetting colors for now though!
+                
+                
+                # MAJORITY SECOND COLOR
+                secondTextItem = self.tableWidget.item(row, self._SECOND_COLOR_TEXT_COLUMN)
+                secondTextColor = QColor(*self._DEFAULT_MAJORITY_SECOND_COLORS[row])
+                secondTextItem.setForeground(secondTextColor)
+                majoritySecondColorStr = ' '.join([str(x) for x in secondTextColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_SECOND_SETTING + str(row), majoritySecondColorStr)
+                
+                # MAJORITY THIRD COLOR
+                thirdTextItem = self.tableWidget.item(row, self._THIRD_COLOR_TEXT_COLUMN)
+                thirdTextColor = QColor(*self._DEFAULT_MAJORITY_THIRD_COLORS[row])
+                thirdTextItem.setForeground(thirdTextColor)
+                majorityThirdColorStr = ' '.join([str(x) for x in thirdTextColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_THIRD_SETTING + str(row), majorityThirdColorStr)
+                
+                # MAJORITY FOURTH COLOR
+                fourthTextItem = self.tableWidget.item(row, self._FOURTH_COLOR_TEXT_COLUMN)
+                fourthTextColor = QColor(*self._DEFAULT_MAJORITY_FOURTH_COLORS[row])
+                fourthTextItem.setForeground(fourthTextColor)
+                majorityFourthColorStr = ' '.join([str(x) for x in fourthTextColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_FOURTH_SETTING + str(row), majorityFourthColorStr)
+                
+                # MAJORITY FIFTH COLOR
+                fifthTextItem = self.tableWidget.item(row, self._FIFTH_COLOR_TEXT_COLUMN)
+                fifthTextColor = QColor(*self._DEFAULT_MAJORITY_FIFTH_COLORS[row])
+                fifthTextItem.setForeground(fifthTextColor)
+                majorityFifthColorStr = ' '.join([str(x) for x in fifthTextColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_FIFTH_SETTING + str(row), majorityFifthColorStr)
+                
+                # MAJORITY SIXTH COLOR
+                sixthTextItem = self.tableWidget.item(row, self._SIXTH_COLOR_TEXT_COLUMN)
+                sixthTextColor = QColor(*self._DEFAULT_MAJORITY_SIXTH_COLORS[row])
+                sixthTextItem.setForeground(sixthTextColor)
+                majoritySixthColorStr = ' '.join([str(x) for x in sixthTextColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_SIXTH_SETTING + str(row), majoritySixthColorStr)
+                
+                # MAJORITY SEVENTH COLOR
+                seventhTextItem = self.tableWidget.item(row, self._SEVENTH_COLOR_TEXT_COLUMN)
+                seventhTextColor = QColor(*self._DEFAULT_MAJORITY_SEVENTH_COLORS[row])
+                seventhTextItem.setForeground(seventhTextColor)
+                majoritySeventhColorStr = ' '.join([str(x) for x in seventhTextColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_SEVENTH_SETTING + str(row), majoritySeventhColorStr)
+                
+                # MAJORITY EIGHTH COLOR
+                eighthTextItem = self.tableWidget.item(row, self._EIGHTH_COLOR_TEXT_COLUMN)
+                eighthTextColor = QColor(*self._DEFAULT_MAJORITY_EIGHTH_COLORS[row])
+                eighthTextItem.setForeground(eighthTextColor)
+                majorityEighthColorStr = ' '.join([str(x) for x in eighthTextColor.getRgb()[:3]])
+                self.settings.setValue(self.MAJORITY_TEXT_EIGHTH_SETTING + str(row), majorityEighthColorStr)
+                
+                # (GRyde) ************************************************************** end
 
                 # set minority text color
                 minorityItem = self.tableWidget.item(row, self._MINORITY_TEXT_COLUMN)
@@ -283,6 +613,15 @@ class ColorTable(QWidget):
                 cellColor = QColor(*self._DEFAULT_CELL_COLORS[row])
                 cellColorItem.setBackground(cellColor)
                 majorityItem.setBackground(cellColor)
+                # (GRyde) ************************************************************** start
+                secondTextItem.setBackground(cellColor)
+                thirdTextItem.setBackground(cellColor)
+                fourthTextItem.setBackground(cellColor)
+                fifthTextItem.setBackground(cellColor)
+                sixthTextItem.setBackground(cellColor)
+                seventhTextItem.setBackground(cellColor)
+                eighthTextItem.setBackground(cellColor)
+                # (GRyde) ************************************************************** end
                 minorityItem.setBackground(cellColor)
                 cellColorStr = ' '.join([str(x) for x in cellColor.getRgb()[:3]])
                 self.settings.setValue(self.CELL_COLOR_SETTING + str(row), cellColorStr)
@@ -296,11 +635,36 @@ class ColorTable(QWidget):
         cellColorSettings = [settings.value(ColorTable.CELL_COLOR_SETTING + str(i)) for i in range(len(GENE_TOOLS))]
         majorityColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_SETTING + str(i)) for i in
                                  range(len(GENE_TOOLS))]
+        # (GRyde) ********************************************************************** start
+        majoritySecondColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_SECOND_SETTING + str(i)) for i in
+                                       range(len(GENE_TOOLS))]
+        majorityThirdColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_THIRD_SETTING + str(i)) for i in
+                                      range(len(GENE_TOOLS))]
+        majorityFourthColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_FOURTH_SETTING + str(i)) for i in
+                                       range(len(GENE_TOOLS))]
+        majorityFifthColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_FIFTH_SETTING + str(i)) for i in
+                                      range(len(GENE_TOOLS))]
+        majoritySixthColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_SIXTH_SETTING + str(i)) for i in
+                                      range(len(GENE_TOOLS))]
+        majoritySeventhColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_SEVENTH_SETTING + str(i)) for i in
+                                        range(len(GENE_TOOLS))]
+        majorityEighthColorSettings = [settings.value(ColorTable.MAJORITY_TEXT_EIGHTH_SETTING + str(i)) for i in
+                                       range(len(GENE_TOOLS))]
+        # (GRyde) ********************************************************************** end
         minorityColorSettings = [settings.value(ColorTable.MINORITY_TEXT_SETTING + str(i)) for i in
                                  range(len(GENE_TOOLS))]
 
         if None in cellColorSettings or None in majorityColorSettings or None in minorityColorSettings:
             ColorTable._setDefaultSettings(settings)
+        # (GRyde) ********************************************************************** start
+        # Definitely could clean this part up, now that I know this is what gets fix to work I should make these part of the
+        # original 'if' statement above
+        # Maybe add all the settings items to a list and iterate through it?
+        if (None in majoritySecondColorSettings or None in majorityThirdColorSettings or None in majorityFourthColorSettings or
+            None in majorityFifthColorSettings or None in majoritySixthColorSettings or None in majoritySeventhColorSettings or
+            None in majorityEighthColorSettings):
+            ColorTable._setDefaultSettings(settings)
+        # (GRyde) ********************************************************************** end
 
     @staticmethod
     def _setDefaultSettings(settings):
@@ -316,6 +680,38 @@ class ColorTable(QWidget):
             # MAJORITY COLOR
             defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_COLORS[i])
             settings.setValue(ColorTable.MAJORITY_TEXT_SETTING + str(i), defaultColorStr)
+            
+            # (GRyde) ******************************************************************* start
+            
+            # MAJORITY SECOND COLOR
+            defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_SECOND_COLORS[i])
+            settings.setValue(ColorTable.MAJORITY_TEXT_SECOND_SETTING + str(i), defaultColorStr)
+            
+            # MAJORITY THIRD COLOR
+            defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_THIRD_COLORS[i])
+            settings.setValue(ColorTable.MAJORITY_TEXT_THIRD_SETTING + str(i), defaultColorStr)
+            
+            # MAJORITY FOURTH COLOR
+            defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_FOURTH_COLORS[i])
+            settings.setValue(ColorTable.MAJORITY_TEXT_FOURTH_SETTING + str(i), defaultColorStr)
+            
+            # MAJORITY FIFTH COLOR
+            defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_FIFTH_COLORS[i])
+            settings.setValue(ColorTable.MAJORITY_TEXT_FIFTH_SETTING + str(i), defaultColorStr)
+            
+            # MAJORITY SIXTH COLOR
+            defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_SIXTH_COLORS[i])
+            settings.setValue(ColorTable.MAJORITY_TEXT_SIXTH_SETTING + str(i), defaultColorStr)
+            
+            # MAJORITY SEVENTH COLOR
+            defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_SEVENTH_COLORS[i])
+            settings.setValue(ColorTable.MAJORITY_TEXT_SEVENTH_SETTING + str(i), defaultColorStr)
+            
+            # MAJORITY EIGHTH COLOR
+            defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MAJORITY_EIGHTH_COLORS[i])
+            settings.setValue(ColorTable.MAJORITY_TEXT_EIGHTH_SETTING + str(i), defaultColorStr)
+            
+            # (GRyde) ******************************************************************* end
 
             # MINORITY COLOR
             defaultColorStr = ' '.join(str(color) for color in ColorTable._DEFAULT_MINORITY_COLORS[i])
@@ -385,16 +781,24 @@ class NewFileDialog(QDialog):
         # label font
         labelFont = QFont()
         labelFont.setUnderline(True)
+        labelFont.setPointSize(12)
 
         # WIDGETS ----------------------------------------------------------------------------------
         # genemark boxes
-        genemarkLabel = QLabel('Genemark')
+        """
+            (GRyde) Update to checkbox labels
+            HMM > Host-trained GeneMark
+            Heuristic > GeneMark w/ Heuristics
+            GMS > GeneMark S
+            GMS2 > GeneMark S2
+        """
+        genemarkLabel = QLabel('GeneMark')
         genemarkLabel.setFont(labelFont)
-        gmBox = QCheckBox('Genemark')
-        self.hmmBox = QCheckBox('HMM')
-        heuristicBox = QCheckBox('Heuristic')
-        gmsBox = QCheckBox('GMS')
-        gms2Box = QCheckBox('GMS2')
+        gmBox = QCheckBox('GeneMark')
+        self.hmmBox = QCheckBox('Host-trained GeneMark')
+        heuristicBox = QCheckBox('GeneMark w/ Heuristics')
+        gmsBox = QCheckBox('GeneMark S')
+        gms2Box = QCheckBox('GeneMark S2')
 
         # glimmer box
         glimmerLabel = QLabel('Glimmer')
@@ -421,8 +825,12 @@ class NewFileDialog(QDialog):
         ARAGORN_LABEL_TEXT = 'Aragorn'
         aragornLabel = QLabel(ARAGORN_LABEL_TEXT)
         aragornLabel.setFont(labelFont)
-        aragornBox = QCheckBox(ARAGORN_LABEL_TEXT)
-
+        aragornBox = QCheckBox('Aragorn (for tRNA)')
+        
+        # checkbox font
+        checkBoxFont = QFont()
+        checkBoxFont.setPointSize(12)
+        
         # dictionary mapping tools to checkboxes
         self.toolCheckBoxes = dict()
         self.toolCheckBoxes['gm'] = gmBox
@@ -441,59 +849,82 @@ class NewFileDialog(QDialog):
             box.setCheckState(Qt.Checked)
             # check to disable the species combobox on every click of a box
             box.stateChanged.connect(self.disableSpeciesCheck)
+            # Set font size
+            box.setFont(checkBoxFont)
+
 
         # check if Prodigal binary exists, if not, disable Prodigal
         if prodigalPath is None:
             prodigalBox.setCheckable(False)
             prodigalBox.setEnabled(False)
-
+            
+        
         # species combo box
-        speciesLabel = QLabel('Species:')
+        speciesLabel = QLabel('Host species (for host-trained GeneMark):')
         speciesLabel.setFont(labelFont)
         self.speciesComboBox = QComboBox()
         self.speciesComboBox.addItems(Gene.SPECIES)
-        self.speciesComboBox.setMaximumWidth(250)
+        self.speciesComboBox.setMaximumWidth(550) # Originally 250
+        
+        # (GRyde) Testing disable of Glimmer box (works, just need to uncomment when ready to use)
+        # platformCheck = platform.system()
+        # platformCheck = platformCheck.lower()
+        
+        # if platformCheck == 'windows':
+            # glimmerBox.setCheckState(Qt.Unchecked)
+            # glimmerBox.setEnabled(False)
+        
 
         # dna file input
-        fileLabel = QLabel('Fasta File:')
+        fileLabel = QLabel('Input genome (.fasta file):')
         fileLabel.setFont(labelFont)
         self.fileEdit = QLineEdit()
-        fileButton = QPushButton('Open...')
+        fileButton = QPushButton('Select...')
         fileButton.clicked.connect(self.openFileDialog)
 
         # buttons
-        self.queryButton = QPushButton('Query')
+        self.queryButton = QPushButton('Run Phage Commander')
         self.queryButton.clicked.connect(self.accept)
         self.cancelButton = QPushButton('Cancel')
         self.cancelButton.clicked.connect(self.reject)
 
         # Widget Layout ----------------------------------------------------------------------------
+        # (GRyde) It has been requested to remove the labels (underlined text). Will just comment then out here
+        #         so re-adding is easy if necessary
         # genemark
-        checkBoxLayout.addWidget(genemarkLabel, 0, 0)
-        checkBoxLayout.addWidget(gmBox, 1, 0)
-        checkBoxLayout.addWidget(self.hmmBox, 1, 1)
-        checkBoxLayout.addWidget(heuristicBox, 1, 2)
-        checkBoxLayout.addWidget(gmsBox, 2, 0)
-        checkBoxLayout.addWidget(gms2Box, 2, 1)
-        # glimmer
-        checkBoxLayout.addWidget(glimmerLabel, 3, 0)
-        checkBoxLayout.addWidget(glimmerBox, 4, 0)
-        # prodigal
-        checkBoxLayout.addWidget(prodigalLabel, 3, 1)
-        checkBoxLayout.addWidget(prodigalBox, 4, 1)
+        # (GRyde) Order of checkboxes has also been requested to be updated
+        
         # rast
-        checkBoxLayout.addWidget(rastLabel, 3, 2)
-        checkBoxLayout.addWidget(rastBox, 4, 2)
+        #checkBoxLayout.addWidget(rastLabel, 3, 2)
+        checkBoxLayout.addWidget(rastBox, 1, 0)
+        
+        # prodigal
+        #checkBoxLayout.addWidget(prodigalLabel, 3, 1)
+        checkBoxLayout.addWidget(prodigalBox, 1, 1)
+        
         # metagene
-        checkBoxLayout.addWidget(metageneLabel, 5, 0)
-        checkBoxLayout.addWidget(metageneBox, 6, 0)
+        #checkBoxLayout.addWidget(metageneLabel, 5, 0)
+        checkBoxLayout.addWidget(metageneBox, 1, 2)
+       
+        # glimmer
+        #checkBoxLayout.addWidget(glimmerLabel, 3, 0)
+        checkBoxLayout.addWidget(glimmerBox, 2, 0)
+        
+        #checkBoxLayout.addWidget(genemarkLabel, 0, 0)
+        checkBoxLayout.addWidget(gmBox, 2, 1)
+        checkBoxLayout.addWidget(heuristicBox, 2, 2)
+        checkBoxLayout.addWidget(gmsBox, 3, 0)
+        checkBoxLayout.addWidget(gms2Box, 3, 1)
+        checkBoxLayout.addWidget(self.hmmBox, 3, 2)
+        
         # aragorn
-        checkBoxLayout.addWidget(aragornLabel, 5, 1)
-        checkBoxLayout.addWidget(aragornBox, 6, 1)
+        #checkBoxLayout.addWidget(aragornLabel, 5, 1)
+        #checkBoxLayout.addWidget(aragornBox, 4, 0)
 
         # species
         speciesLayout.addWidget(speciesLabel)
-        speciesLayout.addWidget(self.speciesComboBox)
+        # .addWidget(widget, stretch factor)
+        speciesLayout.addWidget(self.speciesComboBox, 2)
 
         # file
         dnaFileLayout.addWidget(self.fileEdit)
@@ -502,16 +933,22 @@ class NewFileDialog(QDialog):
         # buttons
         buttonLayout.addWidget(self.queryButton)
         buttonLayout.addWidget(self.cancelButton)
-
+        
         mainLayout.addLayout(checkBoxLayout)
         mainLayout.addLayout(speciesLayout)
+        mainLayout.addWidget(aragornBox)
         mainLayout.addWidget(fileLabel)
         mainLayout.addLayout(dnaFileLayout)
         mainLayout.addLayout(buttonLayout)
+        # (GRyde) ******************************************************* start
+        # WINDOW SIZE
+        self.setMinimumWidth(650)
+        self.setMinimumHeight(250)
+        # (GRyde) ******************************************************* end
 
         # Dialog Settings --------------------------------------------------------------------------
         self.setLayout(mainLayout)
-        self.setWindowTitle('Select Query Tools')
+        self.setWindowTitle('Select Gene Identification Programs')
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
 
     @pyqtSlot()
@@ -573,7 +1010,8 @@ class NewFileDialog(QDialog):
         Open a dialog for user to select DNA file
         """
         last_fasta_file_location = self.settings.value(self._LAST_FASTA_FILE_LOCATION_SETTING)
-        file = QFileDialog.getOpenFileName(self, 'Open DNA File', last_fasta_file_location)
+        # (GRyde) Request to filter only .fasta files
+        file = QFileDialog.getOpenFileName(self, 'Open DNA File', last_fasta_file_location, "FASTA file (*.fasta)")
 
         # if file was chosen, set file line edit
         if file[0]:
@@ -654,13 +1092,24 @@ class QueryThread(QThread):
         except Exception as e:
             self.queryData.toolData[self.tool] = e
             return
+            
+        # (GRyde) Call to parse methods updated with third argument, which is length of gene sequence
+        try:
+            genes = parseMethod(self.geneFile.query_data[self.tool], identity=self.tool, totalLength=len(self.queryData.sequence))
+        except Exception as e:
+            self.queryData.toolData[self.tool] = e
+            return
+            
 
+        """
+            (GRyde) Original code
         # perform parsing of data
         try:
             genes = parseMethod(self.geneFile.query_data[self.tool], identity=self.tool)
         except Exception as e:
             self.queryData.toolData[self.tool] = e
             return
+        """
 
         # update query object with genes
         self.queryData.toolData[self.tool] = genes
@@ -829,13 +1278,27 @@ class exportGenbankDialog(phagecommander.GuiWidgets.exportDialog):
             filteredGenes.extend(geneSet)
 
         # filter based on user selection
-        filteredGenes = Gene.GeneUtils.filterGenes(filteredGenes, self.getFilterFunction())
+        filteredGenes = Gene.GeneUtils.filterGenes(filteredGenes, self.getFilterFunction(), self.exportTRNA)
         # filtered genes is now List[List[Gene]]
-
+        
         genesToExport = []
-        # find the most frequent Gene in each set of Genes
-        for geneSet in filteredGenes:
-            genesToExport.append(Gene.GeneUtils.findMostGeneOccurrences(geneSet))
+        # (GRyde) Adding methods for exporting based on longest gene or specific program
+        
+        if self.codonCurrentSelection == self._MOST_OCCURRENCES_TEXT:
+            # find the most frequent Gene in each set of Genes
+            for geneSet in filteredGenes:
+                genesToExport.append(Gene.GeneUtils.findMostGeneOccurrences(geneSet))
+                
+        elif self.codonCurrentSelection == self._LONGEST_TEXT:
+            # find the longest Gene in each set of Genes
+            for geneSet in filteredGenes:
+                genesToExport.append(Gene.GeneUtils.findLongestGene(geneSet))
+                
+        elif self.codonCurrentSelection == self._SPECIFIC_PROGRAM_TEXT:
+            # find the gene called by a specific program (if not called by program, use most or longest in tie)
+            programFilter = self.getSpecificProgram()
+            for geneSet in filteredGenes:
+                genesToExport.append(Gene.GeneUtils.useSpecificProgram(geneSet, programFilter))
 
         # output to file
         try:
@@ -907,8 +1370,9 @@ class GeneMain(QMainWindow):
 
         # LAYOUT -----------------------------------------------------------------------------------
         self.setCentralWidget(self.tab)
-        self.setMinimumWidth(400)
-        self.setMinimumHeight(400)
+        # (GRyde) Original size appears to be 400, expanding significantly for better user interface
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(1000)
 
         # ACTIONS ----------------------------------------------------------------------------------
         # new query
@@ -1384,7 +1848,137 @@ class GeneMain(QMainWindow):
                 textColorSetting = self.settings.value(ColorTable.MAJORITY_TEXT_SETTING + str(currentGeneCount - 1))
                 textNums = [int(num) for num in textColorSetting.split(' ')]
                 textColor = QColor(*textNums)
+                # (GRyde) ******************************************************************** 
+                # Establish 2nd/3rd/4th majority text settings
+                # 2nd
+                textColorSecondSetting = self.settings.value(ColorTable.MAJORITY_TEXT_SECOND_SETTING + str(currentGeneCount - 1))
+                textNumsSecond = [int(num) for num in textColorSecondSetting.split(' ')]
+                textColorSecond = QColor(*textNumsSecond)
+                # 3rd
+                textColorThirdSetting = self.settings.value(ColorTable.MAJORITY_TEXT_THIRD_SETTING + str(currentGeneCount - 1))
+                textNumsThird = [int(num) for num in textColorThirdSetting.split(' ')]
+                textColorThird = QColor(*textNumsThird)
+                # 4th
+                textColorFourthSetting = self.settings.value(ColorTable.MAJORITY_TEXT_FOURTH_SETTING + str(currentGeneCount - 1))
+                textNumsFourth = [int(num) for num in textColorFourthSetting.split(' ')]
+                textColorFourth = QColor(*textNumsFourth)
+                # 5th
+                textColorFifthSetting = self.settings.value(ColorTable.MAJORITY_TEXT_FIFTH_SETTING + str(currentGeneCount - 1))
+                textNumsFifth = [int(num) for num in textColorFifthSetting.split(' ')]
+                textColorFifth = QColor(*textNumsFifth)
+                # 6th
+                textColorSixthSetting = self.settings.value(ColorTable.MAJORITY_TEXT_SIXTH_SETTING + str(currentGeneCount - 1))
+                textNumsSixth = [int(num) for num in textColorSixthSetting.split(' ')]
+                textColorSixth = QColor(*textNumsSixth)
+                # 7th
+                textColorSeventhSetting = self.settings.value(ColorTable.MAJORITY_TEXT_SEVENTH_SETTING + str(currentGeneCount - 1))
+                textNumsSeventh = [int(num) for num in textColorSeventhSetting.split(' ')]
+                textColorSeventh = QColor(*textNumsSeventh)
+                # 8th
+                textColorEighthSetting = self.settings.value(ColorTable.MAJORITY_TEXT_EIGHTH_SETTING + str(currentGeneCount - 1))
+                textNumsEighth = [int(num) for num in textColorEighthSetting.split(' ')]
+                textColorEighth = QColor(*textNumsEighth)
+                # Original start
+                # Establish minority text settings
+                minTextColorSetting = self.settings.value(ColorTable.MINORITY_TEXT_SETTING + str(currentGeneCount - 1))
+                minTextNums = [int(num) for num in minTextColorSetting.split(' ')]
+                minTextColor = QColor(*minTextNums)
+                # Original end
+                # (GRyde) ******************************************************************** end
                 # TODO: Figure out minority rule
+                # (GRyde) ******************************************************************** start
+                
+                #Establish if majority case should be compared against start or stop
+                if currentGeneSet[0].direction == '+':
+                    compareStart = True
+                else:
+                    compareStart = False
+                    
+                majorityNum = []
+                majorityCalls = 0
+                
+                uniqueNum = []
+                
+                # Determine start/stop with greatest amount of calls for current gene
+                for number in currentGenes.keys():
+                    if currentGenes[number] > majorityCalls:
+                        majorityCalls = currentGenes[number]
+                        
+                # Compare calls to each comparingNum vs highest amount for current gene
+                for number in currentGenes.keys():
+                    if currentGenes[number] == majorityCalls:
+                        majorityNum.append(number)
+                        
+                # Including minTextColor just for testing, remove once other 5 colors added        
+                textColors = [
+                    textColor,
+                    textColorSecond,
+                    textColorThird,
+                    textColorFourth,
+                    textColorFifth,
+                    textColorSixth,
+                    textColorSeventh,
+                    textColorEighth,
+                    minTextColor
+                ]        
+                textList = []
+                
+                # If all start/stop comparison numbers match, no need to set up different colors
+                if not (majorityCalls == currentGeneCount):
+                    
+                    for number in majorityNum:
+                        uniqueNum.append(number)
+                        
+                    for number in currentGenes.keys():
+                        if not (number in uniqueNum):
+                            uniqueNum.append(number)
+                            
+                    for currentGene in currentGeneSet:
+                        if compareStart:
+                            colorIndex = uniqueNum.index(currentGene.start)
+                            textList.append([currentGene, textColors[colorIndex]])
+                        else:
+                            colorIndex = uniqueNum.index(currentGene.stop)
+                            textList.append([currentGene, textColors[colorIndex]])
+                
+                # Ver. 2 start
+                # if not (majorityCalls == currentGeneCount):
+                    # for currentGene in currentGeneSet:
+                        # matchFound = False
+                        # for number in majorityNum:
+                            # if compareStart:
+                                # if currentGene.start == number:
+                                    # colorIndex = majorityNum.index(number)
+                                    # textList.append([currentGene, textColors[colorIndex]])
+                                    # matchFound = True
+                                    # break
+                            # else:
+                                # if currentGene.stop == number:
+                                    # colorIndex = majorityNum.index(number)
+                                    # textList.append([currentGene, textColors[colorIndex]])
+                                    # matchFound = True
+                                    # break
+                        # if not matchFound:
+                            # textList.append([currentGene, minTextColor])
+                # Ver. 2 end
+                
+                # Original start
+                # If single comparing number received all tool calls, ignore as there is no minority
+                # Otherwise, compare start/stop of each gene in currentGeneSet vs majority numbers
+                # if not (majorityCalls == currentGeneCount):
+                    # for minGene in currentGeneSet:
+                        # isMinority = True
+                        # for number in majorityNum:
+                            # if compareStart:
+                                # if minGene.start == number:
+                                    # isMinority = False
+                            # else:
+                                # if minGene.stop == number:
+                                    # isMinority = False
+                        # minTextList.append([isMinority, minGene])
+                # Original end
+                                     
+                # (GRyde) ******************************************************************** end
                 for column in range(totalColumns):
                     item = table.item(currentRow, column)
                     # insert blank item if none is present
@@ -1393,6 +1987,29 @@ class GeneMain(QMainWindow):
                         table.setItem(currentRow, column, item)
                     item.setBackground(color)
                     item.setForeground(textColor)
+                    
+                # (GRyde) ******************************************************************** start
+                for currentGene, geneColor in textList:
+                    geneColIndex = headerIndexes[currentGene.identity]
+                    if compareStart:
+                        item = table.item(currentRow, geneColIndex + 1)
+                        item.setForeground(geneColor)
+                    else:
+                        item = table.item(currentRow, geneColIndex + 2)
+                        item.setForeground(geneColor)
+                # Original start
+                # Set minority text for appropriate items
+                # for minCheck, minGene in minTextList:
+                    # if minCheck:
+                        # minGeneIndex = headerIndexes[minGene.identity]
+                        # if compareStart:
+                            # item = table.item(currentRow, minGeneIndex + 1)
+                            # item.setForeground(minTextColor)
+                        # else:
+                            # item = table.item(currentRow, minGeneIndex + 2)
+                            # item.setForeground(minTextColor)
+                # Original end
+                # (GRyde) ******************************************************************** end
 
                 # record new gene
                 currentGeneCount = 1
@@ -1468,6 +2085,15 @@ class GeneMain(QMainWindow):
                 table.setItem(currentRow, column, item)
             item.setBackground(color)
             item.setForeground(textColor)
+            
+        # table font
+        tableFont = QFont()
+        tableFont.setPointSize(15)
+        
+        for row in range(currentRow + 1):
+            for column in range(totalColumns):
+                item = table.item(row, column)
+                item.setFont(tableFont)
 
         # show tab
         # self.tab.addTab(table, self._GENE_TAB_LABEL)

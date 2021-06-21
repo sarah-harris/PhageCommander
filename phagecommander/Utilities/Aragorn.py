@@ -58,7 +58,8 @@ def aragorn_query(file_path: str, rna_type: str = 'tRNA', use_introns: bool = Fa
     return file_post.content
 
 
-def aragorn_parse(aragorn_data: str, id=None):
+# (GRyde) Updated to include totalLength parameter, original parameter list was aragorn_parse(aragorn_data: str, id=None)
+def aragorn_parse(aragorn_data: str, totalLength, id=None):
     soup = BeautifulSoup(aragorn_data, 'html.parser')
     trnas = soup.find('pre')
 
@@ -80,7 +81,7 @@ def aragorn_parse(aragorn_data: str, id=None):
                 else:
                     direction = '+'
                     start, stop = ast.literal_eval(seq_data[2])
-                gene = Gene.TRNA(start, stop, direction, seq_type, identity=id)
+                gene = Gene.TRNA(start, stop, direction, seq_type, totalLength, identity=id)
                 genes.append(gene)
 
     return genes

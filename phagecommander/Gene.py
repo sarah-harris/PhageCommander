@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 import json
 import time
 import os
+import sys #(GRyde) Needed for current solution to creating .exe
 from typing import Callable, List
 from subprocess import Popen, PIPE
 import subprocess
@@ -30,9 +31,30 @@ GMS2_DOMAIN = 'http://exon.gatech.edu/GeneMark/genemarks2.cgi'
 GLIMMER_DOMAIN = 'http://18.220.233.194/glimmer'  # Server DNA master uses
 
 # species
-species_file = os.path.join(os.path.dirname(__file__), 'species.txt')
+# (GRyde) *****************************************************************************
+# PyInstaller creates a temp folder and stores path in _MEIPASS
+# In instances where script is run from python instead of .exe, will use current directory to find species.txt
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+        
+    return os.path.join(base_path, relative_path)
+    
+# (GRyde) **************************************************************************** Original author code
+# species
+#species_file = os.path.join(os.path.dirname(__file__), 'species.txt')
+#with open(species_file, 'r') as file:
+    #SPECIES = [specie.strip() for specie in file]
+# (GRyde) ***************************************************************************** end
+
+# (GRyde) ***************************************************************************** start
+# Call resource_path to determine appropriate file path based on run environment (.exe vs python)
+species_file = resource_path('species.txt')
 with open(species_file, 'r') as file:
     SPECIES = [specie.strip() for specie in file]
+# (GRyde) ***************************************************************************** end
 
 # tools
 TOOLS = ['gm', 'hmm', 'heuristic', 'gms', 'gms2', 'prodigal', 'glimmer', 'rast', 'metagene', 'aragorn']
@@ -376,7 +398,8 @@ class GeneError(Error):
 class GeneFeature:
     DIRECTIONS = {'+', '-'}
 
-    def __init__(self, start: int, stop: int, direction: str):
+    # (GRyde) Updated with totalLength parameter
+    def __init__(self, start: int, stop: int, direction: str, totalLength):
         self.start = start
         self.stop = stop
 
@@ -385,6 +408,9 @@ class GeneFeature:
         self.direction = direction
 
         self.length = stop - start + 1
+        # (GRyde) Length calculation for genes that wrap around back to their start
+        if self.length < 0:
+            self.length = totalLength + stop - start + 1
 
     def __eq__(self, other):
 
@@ -407,7 +433,8 @@ class Gene(GeneFeature):
     Class for representing a potential gene encoding
     """
 
-    def __init__(self, start: str, stop: str, direction: str, identity=''):
+    # (GRyde) Updated with totalLength parameters
+    def __init__(self, start: str, stop: str, direction: str, identity='', totalLength=0):
         """
         Constructor
         :param start:  start codon (str)
@@ -436,7 +463,9 @@ class Gene(GeneFeature):
 
         self.identity = identity
 
-        super(Gene, self).__init__(start, stop, direction)
+        # (GRyde) Calls GeneFeature __init__, I added totalLength as before it was:
+        # super(Gene, self).__init__(start, stop, direction)
+        super(Gene, self).__init__(start, stop, direction, totalLength)
 
     def jsonDump(self):
 
@@ -486,10 +515,18 @@ class Gene(GeneFeature):
         return '({}, {}, {})'.format(self.direction, self.start, self.stop)
 
 
-class TRNA(GeneFeature):
-
+"""
+    (GRyde)
+    Original TRNA __init__ method:
     def __init__(self, start, stop, direction, trna_type, identity=None):
         super(TRNA, self).__init__(start, stop, direction)
+        
+    Updated to include totalLength as parameter and use totalLength in inheritance statement, super(), to GeneFeature
+"""
+class TRNA(GeneFeature):
+
+    def __init__(self, start, stop, direction, trna_type, totalLength, identity=None):
+        super(TRNA, self).__init__(start, stop, direction, totalLength)
 
         self.type = trna_type
         self.identity = identity
@@ -526,8 +563,11 @@ class GeneUtils:
         """
         return sorted(genes, key=GeneUtils.getGeneComparison)
 
+    # (GRyde) Adding third parameter to this fuction to allowing for tRNA to be exported
+    #         regardless of spinbox value
+    # Originally: (genes: List[Gene], comparisonFunc: Callable[[int], bool]) -> List[List[Gene]]
     @staticmethod
-    def filterGenes(genes: List[Gene], comparisonFunc: Callable[[int], bool]) -> List[List[Gene]]:
+    def filterGenes(genes: List[Gene], comparisonFunc: Callable[[int], bool], exportRNA: bool) -> List[List[Gene]]:
         """
         Filters the genes to only those where there are <limit> or more of that gene
         Ex: Filter for genes which there are more than 3 of each
@@ -556,9 +596,24 @@ class GeneUtils:
             else:
                 # if comparison is satisfactory, add to genes to be returned
                 # else, they're dropped
-                if comparisonFunc(len(currentGroup)):
-                    filteredGenes.append(currentGroup)
-
+                
+                # (GRyde) If exporting tRNA, check group against filter amount.
+                #         If doesn't match, check if TRNA obj first before discarding.
+                if exportRNA:
+                    if comparisonFunc(len(currentGroup)):
+                        filteredGenes.append(currentGroup)
+                    
+                    elif isinstance(currentGroup[0], TRNA):
+                        filteredGenes.append(currentGroup)
+                # (GRyde) If not exporting tRNA, check first if group is made of TRNA obj(s).
+                #         If yes, no action and move to discard statement.
+                #         If no, check group against selected filter function and append or not as normal.
+                else:
+                    if isinstance(currentGroup[0], TRNA):
+                        pass # Pass since user does NOT want TRNA
+                    elif comparisonFunc(len(currentGroup)):
+                        filteredGenes.append(currentGroup)
+                    
                 # new group of genes
                 currentGroup = [gene]
 
@@ -589,29 +644,100 @@ class GeneUtils:
         for ind, gene in enumerate(genes):
             ind += 1
             direction = 1 if gene.direction == '+' else -1
-            geneFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
-                                                    type='gene',
-                                                    qualifiers={'gene': ind},
-                                                    strand=direction)
-            if isinstance(gene, Gene):
-                cdsFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
-                                                       type='CDS',
-                                                       qualifiers={'gene': ind},
-                                                       strand=direction)
-            elif isinstance(gene, TRNA):
-                product = gene.type.split('(')[0]
-                cdsFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
-                                                       type='TRNA',
-                                                       qualifiers={'gene': ind,
-                                                                   'note': gene.type,
-                                                                   'product': product},
-                                                       strand=direction)
+            # (GRyde) ****************************************************************** start
+            if gene.start > gene.stop:
+                firstJoinLocation = Bio.SeqFeature.FeatureLocation(gene.start - 1, len(seq))
+                secondJoinLocation = Bio.SeqFeature.FeatureLocation(0, gene.stop)
+                combinedLocation = Bio.SeqFeature.CompoundLocation([firstJoinLocation, secondJoinLocation])
+                
+                geneFeature = Bio.SeqFeature.SeqFeature(combinedLocation,
+                                                        type='gene',
+                                                        qualifiers={'gene': ind},
+                                                        strand=direction)
+                                                        
+                if isinstance(gene, Gene):
+                    cdsFeature = Bio.SeqFeature.SeqFeature(combinedLocation,
+                                                           type='CDS',
+                                                           qualifiers={'gene': ind},
+                                                           strand=direction)
+                elif isinstance(gene, TRNA):
+                    product = gene.type.split('(')[0]
+                    cdsFeature = Bio.SeqFeature.SeqFeature(combinedLocation,
+                                                           type='TRNA',
+                                                           qualifiers={'gene': ind,
+                                                                       'note': gene.type,
+                                                                       'product': product},
+                                                           strand=direction)
+            else:
+                geneFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
+                                                        type='gene',
+                                                        qualifiers={'gene': ind},
+                                                        strand=direction)
+                                                        
+                if isinstance(gene, Gene):
+                    cdsFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
+                                                           type='CDS',
+                                                           qualifiers={'gene': ind},
+                                                           strand=direction)
+                elif isinstance(gene, TRNA):
+                    product = gene.type.split('(')[0]
+                    cdsFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
+                                                           type='TRNA',
+                                                           qualifiers={'gene': ind,
+                                                                       'note': gene.type,
+                                                                       'product': product},
+                                                           strand=direction)
+            # (GRyde) Original code below in case catastrophic failure
+            # geneFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
+                                                    # type='gene',
+                                                    # qualifiers={'gene': ind},
+                                                    # strand=direction)
+            # if isinstance(gene, Gene):
+                # cdsFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
+                                                       # type='CDS',
+                                                       # qualifiers={'gene': ind},
+                                                       # strand=direction)
+            # elif isinstance(gene, TRNA):
+                # product = gene.type.split('(')[0]
+                # cdsFeature = Bio.SeqFeature.SeqFeature(Bio.SeqFeature.FeatureLocation(gene.start - 1, gene.stop),
+                                                       # type='TRNA',
+                                                       # qualifiers={'gene': ind,
+                                                                   # 'note': gene.type,
+                                                                   # 'product': product},
+                                                       # strand=direction)
+            # (GRyde) ****************************************************************** end
             features.append(geneFeature)
             features.append(cdsFeature)
 
         # create genbank file from genes and write to file
-        gbRecord = Bio.SeqRecord.SeqRecord(seq, features=features,
+        """
+            (GRyde) Code before adding molecule_type annotation
+            gbRecord = Bio.SeqRecord.SeqRecord(seq, features=features,
                                            name=os.path.split(fileName)[1].split('.')[0])
+        """
+        # (GRyde) As of BioPython version 1.78, molecule_type needs to be explicitly stated in order to write/export
+        # to a .gb (GenBank) file
+        
+        # (GRyde) The GitHub for the BioPython SeqIO class shows that this exact check (len(locus.split()) > 1) is used to determine if whitespace error should be raised.
+        #         So basically borrowing that check to anticipate and correct/prevent errors
+        #         - File name will still keep the intended spaces used. Only replaces whitespace with '_'s in header of .gb file
+        locusLineName = os.path.split(fileName)[1].split('.')[0]
+        if len(locusLineName.split()) > 1:
+            validLocusName = locusLineName.replace(' ', '_')
+        else:
+            validLocusName = locusLineName
+            
+        gbRecord = Bio.SeqRecord.SeqRecord(seq, features=features,
+                                           name=validLocusName,
+                                           annotations={'molecule_type': 'DNA'})
+        
+        """
+        (GRyde) Original approach to creating gbRecord obj. Need to change so that '_' can be added to names with spaces since .gb files do NOT like titles with spaces
+                though it is ok for the file name to have spaces
+        gbRecord = Bio.SeqRecord.SeqRecord(seq, features=features,
+                                           name=os.path.split(fileName)[1].split('.')[0],
+                                           annotations={'molecule_type': 'DNA'})
+        """
         SeqIO.write([gbRecord], fileName, 'genbank')
 
     @staticmethod
@@ -657,6 +783,70 @@ class GeneUtils:
                         maxFrequencyGene = gene
 
         return maxFrequencyGene[0]
+        
+    # (GRyde) Choose genes based on longest
+    #         See findMostGeneOccurrences for notes since methods are very similar
+    @staticmethod
+    def findLongestGene(genes: List[Gene]) -> Gene:
+        """
+        Takes a list of the same Gene and returns the longest one.
+        Shouldn't be possible to have ties for longest
+        """
+        
+        currGene = genes[0]
+        for gene in genes:
+            if gene != currGene:
+                raise ValueError('{} does not match {}'.format(repr(gene), repr(currGene)))
+            currGene = gene
+        
+        longestGene = genes[0]
+        for gene in genes:
+            if gene.length > longestGene.length:
+                longestGene = gene
+                
+        return longestGene
+        
+    # (GRyde) Choose genes based on specific program selection
+    #         See findMostGeneOccurrences for notes since methods are fairly similar
+    @staticmethod
+    def useSpecificProgram(genes: List[Gene], program) -> Gene:
+        """
+        Takes a list of the same Gene and returns the one from the selected program.
+        In the event that a gene from the selected program isn't available, the gene with
+        the most occurrences is used. If there is a tie for most occurrences, the longest
+        gene is used.
+        """
+        
+        geneOccurrences = dict()
+        
+        currGene = genes[0]
+        for gene in genes:
+            if gene != currGene:
+                raise ValueError('{} does not match {}'.format(repr(gene), repr(currGene)))
+            currGene = gene
+            
+            geneStr = repr(gene)
+            if geneStr in geneOccurrences:
+                geneOccurrences[geneStr][1] += 1
+            else:
+                geneOccurrences[geneStr] = [gene, 1]
+                
+        for gene in genes:
+            if gene.identity == program:
+                
+                return gene
+                
+        maxGenes = sorted(geneOccurrences.values(), key=lambda x: x[1], reverse=True)
+        
+        maxFrequencyGene = maxGenes[0]
+        if len(maxGenes) > 1:
+            for gene in maxGenes[1:]:
+                if gene[1] == maxFrequencyGene[1]:
+                    if gene[0].length > maxFrequencyGene[0].length:
+                        maxFrequencyGene = gene
+                        
+        return maxFrequencyGene[0]
+        
 
 
 class GeneParse:
@@ -664,9 +854,16 @@ class GeneParse:
     Class for parsing GeneMark output files
     All methods are static
     """
-
+    
+    """ (GRyde) 
+         - All parse methods given additional parameter, totalLength
+            - Prior versions only used tool_data and identity = ''
+         - All instances of creating Gene obj. updated with additional argument, totalLength=totalLength
+            - Prior versions ended at identity=identity
+         - Would have been tons of work to re-order the parameter list so giving totalLength a default value of 0 so it can come after identity
+    """
     @staticmethod
-    def parse_glimmer(glimmer_data, identity=''):
+    def parse_glimmer(glimmer_data, identity='', totalLength=0):
         """
         Parses the output of a glimmer query for gene predictions
         :param glimmer_data: string representing glimmer query output
@@ -683,15 +880,15 @@ class GeneParse:
                 data = [x for x in line.split(' ') if x != '']
                 # get gene direction and create Gene
                 if '+' in data[3]:
-                    genes.append(Gene(data[1], data[2], '+', identity=identity))
+                    genes.append(Gene(data[1], data[2], '+', identity=identity, totalLength=totalLength))
                 else:
-                    genes.append(Gene(data[2], data[1], '-', identity=identity))
+                    genes.append(Gene(data[2], data[1], '-', identity=identity, totalLength=totalLength))
 
         # return list of Genes
         return genes
 
     @staticmethod
-    def parse_genemark(gm_data, identity=''):
+    def parse_genemark(gm_data, identity='', totalLength=0):
         """
         Parse GeneMark output file for Genes
         :param gm_file: GeneMark output file
@@ -722,14 +919,14 @@ class GeneParse:
                 start = data[2]
                 stop = data[3]
                 direction = data[1]
-                genes.append(Gene(start, stop, direction, identity=identity))
+                genes.append(Gene(start, stop, direction, identity=identity, totalLength=totalLength))
             else:
                 break
 
         return genes
 
     @staticmethod
-    def parse_genemarkS(gms_data, identity=''):
+    def parse_genemarkS(gms_data, identity='', totalLength=0):
         """
         Parse GeneMarkS file for Gene data
         :param s_file: GeneMarkS file
@@ -762,12 +959,12 @@ class GeneParse:
         for current_line in gms_data:
             if current_line != '':
                 data = [x for x in current_line.strip().split(' ') if x != '']
-                genes.append(Gene(data[2], data[3], data[1], identity=identity))
+                genes.append(Gene(data[2], data[3], data[1], identity=identity, totalLength=totalLength))
 
         return genes
 
     @staticmethod
-    def parse_genemarkHmm(hmm_data, identity=''):
+    def parse_genemarkHmm(hmm_data, identity='', totalLength=0):
         """
         Parse GeneMark Hmm file for Gene data
         :param hmm_file:
@@ -813,12 +1010,12 @@ class GeneParse:
                         else:
                             data[2] = data[2][ind:]
 
-                genes.append(Gene(data[2], data[3], data[1], identity=identity))
+                genes.append(Gene(data[2], data[3], data[1], identity=identity, totalLength=totalLength))
 
         return genes
 
     @staticmethod
-    def parse_genemarkHeuristic(heuristic_data, identity=''):
+    def parse_genemarkHeuristic(heuristic_data, identity='', totalLength=0):
         """
         Parse GeneMark Heuristic file for Gene data
         :param heuristic_file: GeneMark Heuristic output file
@@ -850,12 +1047,12 @@ class GeneParse:
         for current_line in heuristic_data:
             if current_line != '':
                 data = [x for x in current_line.strip().split(' ') if x != '']
-                genes.append(Gene(data[2], data[3], data[1], identity=identity))
+                genes.append(Gene(data[2], data[3], data[1], identity=identity, totalLength=totalLength))
 
         return genes
 
     @staticmethod
-    def parse_genemarkS2(gms2_data, identity=''):
+    def parse_genemarkS2(gms2_data, identity='', totalLength=0):
         """
         Parse GeneMark S2 file for Gene data
         :param s2_file: GeneMark S2 output file
@@ -875,13 +1072,24 @@ class GeneParse:
                 index = ind
                 break
         gms2_data = gms2_data[index + 1:]
+        # (GRyde) Print last item in list to see if error-prone data is being put into Gene obj
+        print(gms2_data[-1])
+        # (GRyde)
 
         # Get gene data
         genes = []
         for curr_line in gms2_data:
-            if curr_line != '':
+            """
+                (GRyde)
+                - Searching for '#' in a line instead of blank works because the output of the GMS2 program seems to have some comment lines at bottom
+                of data dump before reaching just blank lines. This parse method was originally taking those comment strings and trying to use that data to 
+                create Gene objects which were not compatible with strings (Gene can accept str but it inherits from GeneFeature which explicitly requries int
+                data type
+            """
+            if '#' not in curr_line: # (GRyde) Changed
+            # if curr_line != '': (GRyde) This is the original line, use this to replace if catastrophic failure
                 data = [x for x in curr_line.strip().split(' ') if x != '']
-                genes.append(Gene(data[2], data[3], data[1], identity=identity))
+                genes.append(Gene(data[2], data[3], data[1], identity=identity, totalLength=totalLength))
             # stop at newline after genes
             else:
                 break
@@ -889,7 +1097,7 @@ class GeneParse:
         return genes
 
     @staticmethod
-    def parse_prodigal(prodigal_data, identity=''):
+    def parse_prodigal(prodigal_data, identity='', totalLength=0):
         """
         Parse prodigal output file for Gene information
         :param prodigal_file: prodigal output file
@@ -914,12 +1122,12 @@ class GeneParse:
                     start, end = gene_str.split('..')
                     # start, end = [int(x) for x in gene_str.split('.') if x.isnumeric()]
                     # create gene
-                    genes.append(Gene(start, end, direction, identity=identity))
+                    genes.append(Gene(start, end, direction, identity=identity, totalLength=totalLength))
 
         return genes
 
     @staticmethod
-    def parse_rast(rast_data, identity=''):
+    def parse_rast(rast_data, identity='', totalLength=0):
         """
         Parse the gff3 formatted data for genes
         :param rast_data: gff3 formatted gene annotations
@@ -934,29 +1142,29 @@ class GeneParse:
                 start = data[3]
                 stop = data[4]
                 direction = data[6]
-                genes.append(Gene(start, stop, direction, identity))
+                genes.append(Gene(start, stop, direction, identity, totalLength))
 
         return genes
 
     @staticmethod
-    def parse_metagene(metagene_data: str, identity: str = ''):
+    def parse_metagene(metagene_data: str, identity: str = '', totalLength=0):
         """
         Parse a metagene output file for Genes
         :param metagene_data: output of Metagene tool
         :param identity: optional identity for gene
         :return: List[Gene]
         """
-        return MetagenePy.Metagene.parse(metagene_data, identity)
+        return MetagenePy.Metagene.parse(metagene_data, identity, totalLength)
 
     @staticmethod
-    def parse_aragorn(aragorn_data: str, identity: str = ''):
+    def parse_aragorn(aragorn_data: str, identity: str = '', totalLength=0):
         """
         Parse Aragorn output
         :param aragorn_data:
         :param identity:
         :return: List[TRNA]
         """
-        return Aragorn.aragorn_parse(aragorn_data, id=identity)
+        return Aragorn.aragorn_parse(aragorn_data, totalLength, id=identity)
 
 
 def write_gene(gene, row, ws, indexes):

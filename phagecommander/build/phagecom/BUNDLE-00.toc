@@ -1,0 +1,3 @@
+([('phagecom',
+   '/Users/ryderg3/Documents/GitHub/PhageCommander-Final/phagecommander/dist/phagecom',
+   'EXECUTABLE')],)
