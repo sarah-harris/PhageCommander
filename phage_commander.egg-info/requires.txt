@@ -1,0 +1,7 @@
+wheel
+requests
+bs4
+openpyxl
+pyqt5
+biopython
+ruamel.yaml

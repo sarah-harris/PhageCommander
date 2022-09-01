@@ -1,8 +1,10 @@
 import setuptools
 
-with open('README.md', 'r') as file:
+# 7/31/22: added "encoding='utf-8' " to enable reading.
+with open('README.md', 'r', encoding='utf-8') as file:
     long_description = file.read()
 
+# 7/31/22: removed version number on pyqt5 to enable it to install.
 setuptools.setup(
     name='phage-commander',
     license='GPL-3',
@@ -12,14 +14,14 @@ setuptools.setup(
     description='A graphical tool for predicting genes on phage DNA sequences',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/mlazeroff/PhageCommander',
+    url='https://github.com/sarah-harris/PhageCommander',
     packages=['phagecommander'],
     package_data={'phagecommander': ['species.txt', 'GuiWidgets/*', 'Utilities/*']},
     install_requires=['wheel',
                       'requests',
                       'bs4',
                       'openpyxl',
-                      'pyqt5>=5.10, <= 5.13.2',
+                      'pyqt5',
                       'biopython',
                       'ruamel.yaml'],
     entry_points={'gui_scripts': 'phagecom = phagecommander.phagecom:main'},

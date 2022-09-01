@@ -1,0 +1,3 @@
+[gui_scripts]
+phagecom = phagecommander.phagecom:main
+

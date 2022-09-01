@@ -7,7 +7,7 @@ import bs4
 import re
 
 GITHUB_URL = 'https://github.com'
-PRODIGAL_RELEASE_URL = 'https://github.com/hyattpd/Prodigal/releases'
+PRODIGAL_RELEASE_URL = 'https://github.com/hyattpd/Prodigal/releases/latest' # updated line 7/31/22
 _LINUX = 'linux'
 _WINDOWS = 'windows'
 _OSX = 'osx'
@@ -79,7 +79,7 @@ class ProdigalRelease:
         """
         self._releaseRequest = requests.get(PRODIGAL_RELEASE_URL)
         self._releaseSoup = bs4.BeautifulSoup(self._releaseRequest.text, 'html.parser')
-        latestRelease = self._releaseSoup.find(attrs={'class': 'release-entry'})
+        latestRelease = self._releaseSoup.find(attrs={'class': 'repository-content'}) # updated line 7/31/22
 
         # get latest release tag
         releaseTag = latestRelease.find(attrs={'class': 'css-truncate-target'})
