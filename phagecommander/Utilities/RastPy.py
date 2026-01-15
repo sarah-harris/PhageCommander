@@ -2,7 +2,8 @@ import os
 import time
 import requests
 from bs4 import BeautifulSoup
-from ruamel import yaml
+from ruamel.yaml import YAML
+from io import StringIO
 
 RAST_URL = 'https://pubseed.theseed.org/rast/server.cgi'
 RAST_USER_URL = 'https://rast.nmpdr.org/rast.cgi'
@@ -37,6 +38,9 @@ class Rast:
         self.jobId = jobId
         self.status = None
 
+        self.yaml = YAML()
+        self.yaml.preserve_quotes = True
+
         # authenticate user
         if not self._checkAuthentication():
             raise RastInvalidCredentialError('Invalid Credentials')
@@ -44,6 +48,14 @@ class Rast:
         # check for status of job if given
         if self.jobId is not None:
             self.checkIfComplete()
+
+
+    def _dump_to_string(self, data):
+            """Helper to dump YAML data to a string (replaces old yaml.dump returning string)"""
+            stream = StringIO()
+            self.yaml.dump(data, stream)
+            return stream.getvalue()
+    
 
     def _checkAuthentication(self):
         """
@@ -84,7 +96,7 @@ class Rast:
             fastaContent = file.read()
 
         # submit args
-        args = yaml.dump({'-determineFamily': 0,
+        data_to_dump = {'-determineFamily': 0,
                           '-domain': 'Bacteria',
                           '-filetype': 'fasta',
                           '-geneCaller': 'RAST',
@@ -92,7 +104,10 @@ class Rast:
                           '-keepGeneCalls': 0,
                           '-non_active': 0,
                           '-organismName': sequenceName,
-                          '-taxonomyID': ''}, Dumper=yaml.RoundTripDumper)
+                          '-taxonomyID': ''}
+
+        args = self._dump_to_string(data_to_dump)
+
         # create file content in yaml format
         file = '-file: |-\n'
         for line in fastaContent.splitlines():
@@ -108,7 +123,7 @@ class Rast:
         submitReq = requests.post(RAST_URL, data=payload)
         submitReq.raise_for_status()
 
-        submitResponse = yaml.safe_load(submitReq.text)
+        submitResponse = self.yaml.load(submitReq.text)
         if submitResponse['status'] == 'ok':
             self.jobId = submitResponse['job_id']
             self.status = 'incomplete'
@@ -140,7 +155,7 @@ class Rast:
 
         statusReq = requests.post(RAST_URL, data=payload)
         statusReq.raise_for_status()
-        statusContent = yaml.safe_load(statusReq.text)
+        statusContent = self.yaml.load(statusReq.text)
         jobStatus = statusContent[self.jobId][_SUCCESS_FIELD]
         self.status = jobStatus
 
@@ -158,8 +173,7 @@ class Rast:
         """
         _RETRIEVE_FUNCTION = 'retrieve_RAST_job'
 
-        args = yaml.dump({'-format': 'gff3_stripped', '-job': self.jobId},
-                         Dumper=yaml.RoundTripDumper)
+        args = self._dump_to_string({'-format': 'gff3_stripped', '-job': self.jobId})
         payload = {'function': _RETRIEVE_FUNCTION,
                    'username': self.username,
                    'password': self.password,
@@ -187,7 +201,7 @@ class Rast:
         deleteReq = requests.post(RAST_URL, data=payload)
         deleteReq.raise_for_status()
 
-        deleteContent = yaml.safe_load(deleteReq.text)
+        deleteContent = self.yaml.load(deleteReq.text)
         print(deleteContent[self.jobId]['status'])
 
 

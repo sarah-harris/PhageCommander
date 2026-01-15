@@ -53,11 +53,13 @@ class ProdigalRelease:
         # download file
         with requests.get(self.releaseUrls[system]) as r:
             r.raise_for_status()
-            fileName = 'prodigal-{}-{}'.format(self.version, system)
+            fileName = f'prodigal-{self.version}-{system}'
             if system == _WINDOWS:
                 fileName += '.exe'
+            
             location = pathlib.Path(location)
             fullPath = location / fileName
+            
             with open(fullPath, 'wb') as file:
                 for chunk in r.iter_content(chunk_size=10 * 1024):
                     if chunk:
@@ -65,34 +67,20 @@ class ProdigalRelease:
 
         # make linux and mac versions executable
         if system == _LINUX or system == _OSX:
-            proc = Popen('chmod +x {}'.format(fullPath), stdout=PIPE, stderr=PIPE, shell=True)
+            proc = Popen(f'chmod +x "{fullPath}"', stdout=PIPE, stderr=PIPE, shell=True)
             stdout, stderr = proc.communicate()
 
         return str(fullPath)
 
     def _getReleaseInfo(self):
         """
-        Retrieves information about the latest release
-        Information includes:
-            * version
-            * download URLs for each supported system
+        FIXED: Hardcoded links to bypass broken GitHub scraping.
         """
-        self._releaseRequest = requests.get(PRODIGAL_RELEASE_URL)
-        self._releaseSoup = bs4.BeautifulSoup(self._releaseRequest.text, 'html.parser')
-        latestRelease = self._releaseSoup.find(attrs={'class': 'repository-content'}) # updated line 7/31/22
-
-        # get latest release tag
-        releaseTag = latestRelease.find(attrs={'class': 'css-truncate-target'})
-        if releaseTag is not None:
-            self._version = releaseTag.text
-
-        # get download urls for each OS type (Windows, Linux, OSX)
-        releaseUrls = latestRelease.find_all('a', attrs={'href': re.compile(r'/hyattpd/Prodigal/releases/download/')})
-        for url in releaseUrls:
-            for system in self.releaseUrls:
-                if system in url['href']:
-                    self.releaseUrls[system] = GITHUB_URL + url['href']
-
+        self._version = 'v2.6.3'
+        base_url = 'https://github.com/hyattpd/Prodigal/releases/download/v2.6.3'
+        self.releaseUrls[_WINDOWS] = f'{base_url}/prodigal.windows.exe'
+        self.releaseUrls[_LINUX] = f'{base_url}/prodigal.linux'
+        self.releaseUrls[_OSX] = f'{base_url}/prodigal.osx.10.9.5'
 
 if __name__ == '__main__':
     release = ProdigalRelease()

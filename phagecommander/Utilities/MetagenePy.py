@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from phagecommander import Gene
 
-METAGENE_URL = 'http://metagene.nig.ac.jp/cgi-bin/mga.cgi'
+METAGENE_URL = 'https://metagene.nig.ac.jp/cgi-bin/mga.cgi'
 
 
 class Metagene:

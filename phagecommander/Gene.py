@@ -24,10 +24,10 @@ from phagecommander.Utilities import RastPy, MetagenePy, Aragorn
 # Genemark Domains
 FILE_DOMAIN = 'http://exon.gatech.edu/GeneMark/'
 GM_DOMAIN = 'http://18.220.233.194/genemark'  # Server DNA master uses
-GM_HMM_DOMAIN = 'http://exon.gatech.edu/GeneMark/gmhmmp.cgi'
-GMS_DOMAIN = 'http://exon.gatech.edu/GeneMark/genemarks.cgi'
-HEURISTIC_DOMAIN = 'http://exon.gatech.edu/GeneMark/heuristic_gmhmmp.cgi'
-GMS2_DOMAIN = 'http://exon.gatech.edu/GeneMark/genemarks2.cgi'
+GM_HMM_DOMAIN = 'https://exon.gatech.edu/GeneMark/gmhmmp.cgi'
+GMS_DOMAIN = 'https://exon.gatech.edu/GeneMark/genemarks.cgi'
+HEURISTIC_DOMAIN = 'https://exon.gatech.edu/GeneMark/heuristic_gmhmmp.cgi'
+GMS2_DOMAIN = 'https://exon.gatech.edu/GeneMark/genemarks2.cgi'
 GLIMMER_DOMAIN = 'http://18.220.233.194/glimmer'  # Server DNA master uses
 
 # species
@@ -170,7 +170,7 @@ class GeneFile:
         headers = {'User-Agent': 'GeneQuery'}
 
         # perform POST of file data
-        file_post = requests.post(GM_DOMAIN, data=payload, headers=headers)
+        file_post = requests.post(GM_DOMAIN, data=payload, headers=headers, verify=False)
         file_post.raise_for_status()
         # check for job_key in response, if not raise error
         try:

@@ -1,10 +1,7 @@
-import ast
-from pathlib import Path
 from typing import List
-
-from bs4 import BeautifulSoup
 from phagecommander import Gene
-import requests
+from Bio import SeqIO
+import pyaragorn
 
 URL = 'http://130.235.244.92/bcgi/aragorn.cgi'
 
@@ -36,52 +33,54 @@ def aragorn_query(file_path: str, rna_type: str = 'tRNA', use_introns: bool = Fa
     if seq_topology not in SEQ_TOPOS:
         raise TypeError(f'{seq_topology} is not a valid sequence topology {SEQ_TOPOS}')
 
-    file_path = Path(file_path)
-    with open(file_path, 'r') as file:
-        file_data = file.read()
+    try:
+            record = SeqIO.read(file_path, "fasta")
+    except ValueError:
+        records = list(SeqIO.parse(file_path, "fasta"))
+        if not records:
+            raise ValueError("No sequence found in file.")
+        record = records[0]
 
-    file_info = {'upload': (file_path.stem, file_data, 'application/octet-stream')}
+    finder = pyaragorn.RNAFinder(translation_table=11)
 
-    form_data = {
-        'genome': 'NC_002695.fna',
-        'search': rna_type,
-        'intron': introns,
-        'topology': seq_topology,
-        'strand': strand,
-        'output': 'tab-delimited',
-        'submit': 'Submit'
-    }
+    try:
+        predictions = finder.find_rna(bytes(record.seq))
+    except TypeError:
+        predictions = finder.find_rna(str(record.seq))
 
-    file_post = requests.post(URL, data=form_data, files=file_info)
-    file_post.raise_for_status()
-
-    return file_post.content
+    filtered_predictions = []
+    for rna in predictions:
+        if rna_type == 'both':
+            filtered_predictions.append(rna)
+        elif rna.type == rna_type:
+            filtered_predictions.append(rna)
+            
+    return filtered_predictions
 
 
 # (GRyde) Updated to include totalLength parameter, original parameter list was aragorn_parse(aragorn_data: str, id=None)
-def aragorn_parse(aragorn_data: str, totalLength, id=None):
-    soup = BeautifulSoup(aragorn_data, 'html.parser')
-    trnas = soup.find('pre')
-
+def aragorn_parse(aragorn_data: List, totalLength, id=None):
     genes: List['Gene.TRNA'] = []
-    lines = trnas.text.split('\n')
-    # total found on third line
-    result_line = lines[2].split(' ')
-    if int(result_line[0]) != 0:
-        for line in lines[3:]:
-            if 'tRNA' in line:
-                line = line.split('\t')
-                seq_data = line[0].split()
-                rna = line[2]
-                seq_type = seq_data[1] + rna
-                # check if complement
-                if seq_data[2][0] == 'c':
-                    direction = '-'
-                    start, stop = ast.literal_eval(seq_data[2][1:])
-                else:
-                    direction = '+'
-                    start, stop = ast.literal_eval(seq_data[2])
-                gene = Gene.TRNA(start, stop, direction, seq_type, totalLength, identity=id)
-                genes.append(gene)
+
+    for rna in aragorn_data:
+        start = rna.begin
+        stop = rna.end
+        
+        if rna.strand >= 0:
+            direction = '+'
+        else:
+            direction = '-'
+
+        if rna.type == 'tRNA':
+            seq_type = f"{rna.type}-{rna.amino_acid}"
+            if hasattr(rna, 'anticodon') and rna.anticodon:
+                 seq_type += f"({rna.anticodon})"
+        else:
+            seq_type = rna.type
+            if hasattr(rna, 'tag_peptide') and rna.tag_peptide:
+                seq_type += f" peptide:{rna.tag_peptide}"
+
+        gene = Gene.TRNA(start, stop, direction, seq_type, totalLength, identity=id)
+        genes.append(gene)
 
     return genes
